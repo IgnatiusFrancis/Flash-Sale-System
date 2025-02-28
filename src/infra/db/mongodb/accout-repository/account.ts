@@ -1,17 +1,38 @@
 import { AddAccountRepository } from "../../../../data/protocols/add-account-repository";
-import { AccountModel } from "../../../../domain/models/account";
+import {
+  AccountDocument,
+  AccountModel,
+} from "../../../../domain/models/account";
 import { AddAccountModel } from "../../../../domain/usecases/add-account";
-import { MongoHelper } from "../helpers/mongo-helper";
 
 export class AccountMongoRepository implements AddAccountRepository {
-  async add(accountData: AddAccountModel): Promise<AccountModel> {
-    const accountCollection = await MongoHelper.getCollection("accounts");
+  async add(accountData: AddAccountModel): Promise<any> {
+    try {
+      const existingAccount = await AccountModel.findOne({
+        email: accountData.email,
+      });
+      if (existingAccount) {
+        return null; // User already exists
+      }
 
-    const result = await accountCollection.insertOne(accountData);
-    const data = await accountCollection.findOne({
-      _id: result.insertedId,
-    });
+      const account = new AccountModel(accountData);
+      console.log("account:", account);
 
-    return MongoHelper.map(data);
+      const savedAccount = await account.save();
+      console.log("savedAccount:", savedAccount);
+
+      return savedAccount;
+    } catch (error) {
+      console.error("❌ Error saving account:", error);
+      throw new Error("Database save error");
+    }
+  }
+
+  async findByEmail(email: string): Promise<AccountDocument | null> {
+    try {
+      return AccountModel.findOne({ email });
+    } catch (error) {
+      throw new Error("Unexpected error");
+    }
   }
 }

@@ -13,7 +13,7 @@ import {
 } from "../../helpers/http-helpers";
 import { Controller } from "../../protocols/controller";
 
-export class LoginController implements Controller {
+export class LogginContfroller implements Controller {
   private readonly emailValidator: EmailValidator;
   private readonly authentication: Authentication;
 

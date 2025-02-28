@@ -1,4 +1,5 @@
-import { AccountModel } from "../models/account";
+//domain/useCases/add-account.ts
+import { AccountDocument } from "../models/account";
 
 export interface AddAccountModel {
   name: string;
@@ -7,5 +8,7 @@ export interface AddAccountModel {
 }
 
 export interface AddAccount {
-  add(account: AddAccountModel): Promise<AccountModel>;
+  add(account: AddAccountModel): Promise<AccountDocument>;
 }
+
+//controller to

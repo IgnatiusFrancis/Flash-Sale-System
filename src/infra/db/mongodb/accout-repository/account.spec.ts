@@ -1,18 +1,18 @@
 import env from "../../../../main/config/env";
-import { MongoHelper } from "../helpers/mongo-helper";
+//import { MongoHelper } from "../helpers/mongo-helper";
 import { AccountMongoRepository } from "./account";
 
 describe("Account Mongo Repository", () => {
-  beforeAll(async () => {
-    await MongoHelper.connect(env.mongoUrl);
-  });
-  afterAll(async () => {
-    await MongoHelper.disconnect();
-  });
-  beforeEach(async () => {
-    const accountCollection = await MongoHelper.getCollection("accounts");
-    accountCollection.deleteMany({});
-  });
+  // beforeAll(async () => {
+  //   await MongoHelper.connect(env.mongoUrl);
+  // });
+  // afterAll(async () => {
+  //   await MongoHelper.disconnect();
+  // });
+  // beforeEach(async () => {
+  //   const accountCollection = await MongoHelper.getCollection("accounts");
+  //   accountCollection.deleteMany({});
+  // });
 
   const makeSut = (): AccountMongoRepository => {
     return new AccountMongoRepository();

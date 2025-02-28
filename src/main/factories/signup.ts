@@ -1,3 +1,4 @@
+//factories/signup.ts
 import { DbAddAccount } from "../../data/usecases/add-account/db-add-account";
 import { BcryptAdapter } from "../../infra/criptography/bcrypt-adapter";
 import { AccountMongoRepository } from "../../infra/db/mongodb/accout-repository/account";

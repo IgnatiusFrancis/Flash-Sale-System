@@ -1,3 +1,4 @@
+//presentation/controllers/signup/signup.ts
 import {
   HttpRequest,
   HttpResponse,
@@ -5,7 +6,11 @@ import {
   EmailValidator,
   AddAccount,
 } from "./signup-protocols";
-import { MissingParamError, InvalidParamError } from "../../errors";
+import {
+  MissingParamError,
+  InvalidParamError,
+  ConflictError,
+} from "../../errors";
 import { badRequest, ok, serverError } from "../../helpers/http-helpers";
 
 export class SignUpController implements Controller {
@@ -54,6 +59,12 @@ export class SignUpController implements Controller {
         email,
         password,
       });
+
+      const NewAccount = await this.addAccount.add({ name, email, password });
+
+      if (!NewAccount) {
+        return badRequest(new ConflictError());
+      }
 
       return ok(account);
     } catch (error) {

@@ -33,7 +33,10 @@ const FAKE_ACCOUNT_MOCK = {
 const makeAddAccountRepository = (): AddAccountRepository => {
   class AddAccountRepositoryStub implements AddAccountRepository {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async add(accountData: AddAccountModel): Promise<AccountModel> {
+    // async add(accountData: AddAccountModel): Promise<AccountModel> {
+    //   return new Promise((resolve) => resolve(FAKE_ACCOUNT_MOCK));
+    // }
+    async add(accountData: AddAccountModel): Promise<any> {
       return new Promise((resolve) => resolve(FAKE_ACCOUNT_MOCK));
     }
   }
