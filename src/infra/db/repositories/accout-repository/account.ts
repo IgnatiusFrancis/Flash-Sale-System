@@ -11,15 +11,13 @@ export class AccountMongoRepository implements AddAccountRepository {
       const existingAccount = await AccountModel.findOne({
         email: accountData.email,
       });
+
       if (existingAccount) {
-        return null; // User already exists
+        return null;
       }
 
       const account = new AccountModel(accountData);
-      console.log("account:", account);
-
       const savedAccount = await account.save();
-      console.log("savedAccount:", savedAccount);
 
       return savedAccount;
     } catch (error) {
@@ -30,7 +28,11 @@ export class AccountMongoRepository implements AddAccountRepository {
 
   async findByEmail(email: string): Promise<AccountDocument | null> {
     try {
-      return AccountModel.findOne({ email });
+      const user = await AccountModel.findOne({ email });
+      if (user) {
+        return user;
+      }
+      return null;
     } catch (error) {
       throw new Error("Unexpected error");
     }

@@ -1,3 +1,4 @@
+//infra/criptography/bcrypt-adapter.ts
 import bcrypt from "bcrypt";
 import { Encrypter } from "../../data/protocols/encrypter";
 
@@ -23,8 +24,15 @@ export class BcryptAdapter implements Encrypter {
     return await bcrypt.compare(value, hash);
   }
 
-  // Generate a new salt (if needed dynamically)
-  async generateSalt(rounds = this.salt): Promise<string> {
-    return await bcrypt.genSalt(rounds);
-  }
+  // // Generate a new salt (if needed dynamically).
+  // async generateSalt(rounds = this.salt): Promise<string> {
+  //   try {
+  //     console.log("rounds...", rounds);
+  //     const salt = await bcrypt.genSalt(rounds);
+  //     console.log("rounds...", rounds);
+  //     return salt;
+  //   } catch (error) {
+  //     throw new Error("Unexpected error");
+  //   }
+  // }
 }

@@ -60,9 +60,7 @@ export class SignUpController implements Controller {
         password,
       });
 
-      const NewAccount = await this.addAccount.add({ name, email, password });
-
-      if (!NewAccount) {
+      if (!account) {
         return badRequest(new ConflictError());
       }
 

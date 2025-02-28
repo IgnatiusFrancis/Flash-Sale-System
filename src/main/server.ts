@@ -1,4 +1,4 @@
-import { connectDB } from "../infra/db/mongodb/Database/mongoose-connection";
+import { connectDB } from "../infra/db/Database/mongoose-connection";
 import env from "./config/env";
 
 connectDB()

@@ -4,5 +4,5 @@ import { makeLoginController } from "../factories/login";
 import { adaptRoute } from "../adapter/express-route-adapter";
 
 export default (router: Router): void => {
-  router.post("/login", adaptRoute(makeLoginController()));
+  router.post("/signin", adaptRoute(makeLoginController()));
 };

@@ -1,6 +1,6 @@
 import { Collection } from "mongodb";
 import env from "../../../../main/config/env";
-import { MongoHelper } from "../helpers/mongo-helper";
+//import { MongoHelper } from "../helpers/mongo-helper";
 import { LogMongoRepository } from "./log";
 
 const makeSut = (): LogMongoRepository => {
@@ -11,13 +11,13 @@ describe("Log Mongo Repository", () => {
   let errorCollection: Collection;
 
   beforeAll(async () => {
-    await MongoHelper.connect(env.mongoUrl);
+    // await MongoHelper.connect(env.mongoUrl);
   });
   afterAll(async () => {
-    await MongoHelper.disconnect();
+    //  await MongoHelper.disconnect();
   });
   beforeEach(async () => {
-    errorCollection = await MongoHelper.getCollection("errors");
+    //errorCollection = await MongoHelper.getCollection("errors");
     errorCollection.deleteMany({});
   });
 
