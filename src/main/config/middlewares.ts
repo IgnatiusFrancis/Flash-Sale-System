@@ -20,7 +20,7 @@ export const authMiddleware =
     try {
       const decoded = await jwtAdapter.verifyToken(token);
       req.user = decoded;
-
+      console.log(decoded);
       if (role && decoded.role !== role) {
         return res.status(403).json({ error: "Forbidden" });
       }

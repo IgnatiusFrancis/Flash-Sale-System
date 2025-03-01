@@ -3,8 +3,7 @@ import { ProductDocument } from "../models/product";
 export interface AddProductModel {
   name: string;
   totalUnits: number;
-  //availableUnits?: number;
-  saleStartTime: Date;
+  price: number;
 }
 
 export interface AddProduct {

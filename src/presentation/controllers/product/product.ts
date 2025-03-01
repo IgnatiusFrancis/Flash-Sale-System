@@ -12,7 +12,7 @@ export class ProductController implements Controller {
 
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
-      const requiredFields = ["name", "totalUnits", "saleStartTime"];
+      const requiredFields = ["name", "totalUnits", "price"];
 
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
@@ -20,22 +20,16 @@ export class ProductController implements Controller {
         }
       }
 
-      const { name, totalUnits, saleStartTime } = httpRequest.body;
+      const { name, totalUnits, price } = httpRequest.body;
 
       if (totalUnits < 1) {
         return badRequest(new InvalidParamError("totalUnits"));
       }
 
-      if (new Date(saleStartTime) < new Date()) {
-        return badRequest(new InvalidParamError("saleStartTime"));
-      }
-
       const product = await this.addProduct.add({
         name,
         totalUnits,
-        //availableUnits: totalUnits,
-        saleStartTime,
-        //saleEndTime,
+        price,
       });
 
       return ok(product);
