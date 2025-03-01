@@ -31,7 +31,7 @@ export class DbAuthentication implements Authentication {
         account.id,
         account.role
       );
-      console.log("auth...", token);
+
       return token;
     } catch (error) {
       throw new Error("Unexpected error");

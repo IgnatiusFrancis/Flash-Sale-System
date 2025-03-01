@@ -12,12 +12,14 @@ export interface FlashSaleDocument extends Document {
   startTime: Date;
   endTime?: Date;
   status: FlashSaleStatus;
+  discount: number;
 }
 
 const FlashSaleSchema = new Schema<FlashSaleDocument>(
   {
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
     availableUnits: { type: Number, required: true, default: 200 },
+    discount: { type: Number, required: true },
     startTime: { type: Date, required: true },
     endTime: { type: Date, default: null },
   },

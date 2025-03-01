@@ -1,25 +1,27 @@
 import jwt from "jsonwebtoken";
+import { TokenGenerator } from "../../data/protocols/token-generator";
 
-export class JwtAdapter {
+export class JwtAdapter implements TokenGenerator {
   private readonly secret: string;
 
   constructor(secret: string) {
+    if (!secret) {
+      throw new Error("JWT secret is required");
+    }
     this.secret = secret;
   }
 
-  async generateToken(value: string): Promise<string> {
-    return jwt.sign({ id: value }, this.secret, { expiresIn: "1d" });
+  async generateToken(id: string, role: string): Promise<string> {
+    return jwt.sign({ id, role }, this.secret, { expiresIn: "1d" });
   }
 
-  async verifyToken(token: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      jwt.verify(token, this.secret, (err, decoded) => {
-        if (err) {
-          reject("Invalid token");
-        } else {
-          resolve(decoded);
-        }
-      });
-    });
+  async verifyToken(
+    token: string
+  ): Promise<{ id: string; role: string } | null> {
+    try {
+      return jwt.verify(token, this.secret) as { id: string; role: string };
+    } catch (error) {
+      return null;
+    }
   }
 }

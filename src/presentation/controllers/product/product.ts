@@ -1,7 +1,11 @@
-import { HttpRequest, HttpResponse, Controller } from "./product-protocols";
+import {
+  HttpRequest,
+  HttpResponse,
+  Controller,
+  AddProduct,
+} from "./product-protocols";
 import { MissingParamError, InvalidParamError } from "../../errors";
 import { badRequest, ok, serverError } from "../../helpers/http-helpers";
-import { AddProduct } from "../../../domain/usecases/add-product";
 
 export class ProductController implements Controller {
   private readonly addProduct: AddProduct;
@@ -31,6 +35,10 @@ export class ProductController implements Controller {
         totalUnits,
         price,
       });
+
+      if (!product) {
+        return badRequest(new Error("Product already exists"));
+      }
 
       return ok(product);
     } catch (error) {

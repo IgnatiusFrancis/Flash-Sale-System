@@ -1,13 +1,10 @@
-// import { ProductDocument } from "../../../domain/models/product";
-// import { AddProduct, AddProductModel } from "../../../domain/usecases/add-product";
-// import { AddProductRepository } from "../../protocols/add-product-repository";
-
+import { ProductDocument } from "../../../domain/models/product";
 import {
   AddProduct,
   AddProductModel,
-  ProductDocument,
-  ProductRepository,
-} from "./db-add-product-protocols";
+} from "../../../domain/usecases/add-product";
+import { ProductRepository } from "./db-add-product-protocols";
+//import { AddProductRepository } from "../../protocols/add-product-repository";
 
 export class DbAddProduct implements AddProduct {
   private readonly addProductRepository: ProductRepository;

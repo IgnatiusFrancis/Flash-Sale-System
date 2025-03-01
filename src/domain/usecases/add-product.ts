@@ -7,5 +7,5 @@ export interface AddProductModel {
 }
 
 export interface AddProduct {
-  add(product: AddProductModel): Promise<ProductDocument | null>;
+  add(product: AddProductModel): Promise<ProductDocument>;
 }
