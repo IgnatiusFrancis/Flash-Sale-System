@@ -2,8 +2,8 @@
 import { DbAuthentication } from "../../data/usecases/authentication/db-authentication";
 import { BcryptAdapter } from "../../infra/criptography/bcrypt-adapter";
 import { JwtAdapter } from "../../infra/criptography/jwt-adapter";
-import { AccountMongoRepository } from "../../infra/db/repositories/accout-repository/account";
-import { LogMongoRepository } from "../../infra/db/repositories/log-repository/log";
+import { AccountMongoRepository } from "../../infra/repositories/accout-repository/account";
+import { LogMongoRepository } from "../../infra/repositories/log-repository/log";
 import { LogginContfroller } from "../../presentation/controllers/login/login";
 import { Controller } from "../../presentation/protocols";
 import { EmailValidatorAdapter } from "../../utils/email-validator-adapter";

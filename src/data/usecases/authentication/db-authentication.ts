@@ -1,5 +1,5 @@
 import { Authentication } from "../../../domain/usecases/authentication";
-import { AccountMongoRepository } from "../../../infra/db/repositories/accout-repository/account";
+import { AccountMongoRepository } from "../../../infra/repositories/accout-repository/account";
 import { TokenGenerator } from "../../protocols/token-generator";
 import { Encrypter } from "../add-account/db-add-account-protocols";
 
@@ -27,7 +27,10 @@ export class DbAuthentication implements Authentication {
 
       if (!isValid) return null;
 
-      const token: string = await this.tokenGenerator.generateToken(account.id);
+      const token: string = await this.tokenGenerator.generateToken(
+        account.id,
+        account.role
+      );
       console.log("auth...", token);
       return token;
     } catch (error) {

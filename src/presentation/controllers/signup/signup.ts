@@ -41,6 +41,7 @@ export class SignUpController implements Controller {
         name,
         email,
         password,
+        role,
         password_confirmation: passwordConfirmation,
       } = httpRequest.body;
 
@@ -58,6 +59,7 @@ export class SignUpController implements Controller {
         name,
         email,
         password,
+        role,
       });
 
       if (!account) {

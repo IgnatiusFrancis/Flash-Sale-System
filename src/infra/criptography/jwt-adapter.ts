@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-import { TokenGenerator } from "../../data/protocols/token-generator";
 
-export class JwtAdapter implements TokenGenerator {
+export class JwtAdapter {
   private readonly secret: string;
 
   constructor(secret: string) {
@@ -10,5 +9,17 @@ export class JwtAdapter implements TokenGenerator {
 
   async generateToken(value: string): Promise<string> {
     return jwt.sign({ id: value }, this.secret, { expiresIn: "1d" });
+  }
+
+  async verifyToken(token: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, this.secret, (err, decoded) => {
+        if (err) {
+          reject("Invalid token");
+        } else {
+          resolve(decoded);
+        }
+      });
+    });
   }
 }

@@ -23,16 +23,4 @@ export class BcryptAdapter implements Encrypter {
   async compare(value: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(value, hash);
   }
-
-  // // Generate a new salt (if needed dynamically).
-  // async generateSalt(rounds = this.salt): Promise<string> {
-  //   try {
-  //     console.log("rounds...", rounds);
-  //     const salt = await bcrypt.genSalt(rounds);
-  //     console.log("rounds...", rounds);
-  //     return salt;
-  //   } catch (error) {
-  //     throw new Error("Unexpected error");
-  //   }
-  // }
 }

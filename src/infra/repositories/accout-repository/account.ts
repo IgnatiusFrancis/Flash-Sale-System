@@ -1,9 +1,7 @@
-import { AddAccountRepository } from "../../../../data/protocols/add-account-repository";
-import {
-  AccountDocument,
-  AccountModel,
-} from "../../../../domain/models/account";
-import { AddAccountModel } from "../../../../domain/usecases/add-account";
+//infra/repositories/account-repository/account.ts
+import { AddAccountRepository } from "../../../data/protocols/add-account-repository";
+import { AccountDocument, AccountModel } from "../../../domain/models/account";
+import { AddAccountModel } from "../../../domain/usecases/add-account";
 
 export class AccountMongoRepository implements AddAccountRepository {
   async add(accountData: AddAccountModel): Promise<any> {
