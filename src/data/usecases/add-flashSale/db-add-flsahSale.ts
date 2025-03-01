@@ -1,3 +1,42 @@
+// import {
+//   AddFlashSale,
+//   AddFlashSaleModel,
+//   FlashSaleDocument,
+//   flashSaleRepository,
+//   ProductRepository,
+// } from "./db-add-flashSale-protocols";
+
+// export class DbAddFlashSale implements AddFlashSale {
+//   private readonly addProductRepository: ProductRepository;
+//   private readonly addflashSaleRepository: flashSaleRepository;
+
+//   constructor(
+//     addProductRepository: ProductRepository,
+//     addflashSaleRepository: flashSaleRepository
+//   ) {
+//     this.addProductRepository = addProductRepository;
+//     this.addflashSaleRepository = addflashSaleRepository;
+//   }
+
+//   async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument | null> {
+//     const existingProduct = await this.addProductRepository.findById(
+//       saleData.productId
+//     );
+//     if (existingProduct) {
+//       return null;
+//     }
+
+//     const existingFlashSale = await this.addflashSaleRepository.findFlashSale(
+//       saleData.productId
+//     );
+//     if (existingFlashSale) {
+//       return null;
+//     }
+
+//     return await this.addflashSaleRepository.add(saleData);
+//   }
+// }
+
 import {
   AddFlashSale,
   AddFlashSaleModel,
@@ -7,25 +46,32 @@ import {
 } from "./db-add-flashSale-protocols";
 
 export class DbAddFlashSale implements AddFlashSale {
-  private readonly addProductRepository: ProductRepository;
-  private readonly addflashSaleRepository: flashSaleRepository;
+  private readonly productRepository: ProductRepository;
+  private readonly flashSaleRepository: flashSaleRepository;
 
   constructor(
-    addProductRepository: ProductRepository,
-    addflashSaleRepository: flashSaleRepository
+    productRepository: ProductRepository,
+    flashSaleRepository: flashSaleRepository
   ) {
-    this.addProductRepository = addProductRepository;
-    this.addflashSaleRepository = addflashSaleRepository;
+    this.productRepository = productRepository;
+    this.flashSaleRepository = flashSaleRepository;
   }
 
-  async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument | null> {
-    const existingProduct = await this.addProductRepository.findById(
+  async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument> {
+    const existingProduct = await this.productRepository.findById(
       saleData.productId
     );
-    if (existingProduct) {
-      return null;
+    if (!existingProduct) {
+      throw new Error("Product not found"); // 🔹 Throw an error instead of returning null
     }
 
-    return await this.addflashSaleRepository.add(saleData);
+    const existingFlashSale = await this.flashSaleRepository.findFlashSale(
+      saleData.productId
+    );
+    if (existingFlashSale) {
+      throw new Error("A flash sale is already active for this product");
+    }
+
+    return await this.flashSaleRepository.add(saleData);
   }
 }

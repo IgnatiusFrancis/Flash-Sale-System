@@ -19,7 +19,7 @@ export class DbAddProduct implements AddProduct {
       productData.name
     );
     if (existingProduct) {
-      return null; // Prevent duplicate products
+      return null;
     }
 
     // ✅ Save the product (no need to manually set availableUnits)

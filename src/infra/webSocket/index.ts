@@ -1,14 +1,22 @@
 import { Server, Socket } from "socket.io";
 import { JwtAdapter } from "../criptography/jwt-adapter";
 import env from "../../main/config/env";
-// import { JwtAdapter } from "../adapters/jwt-adapter";
-// import { ProductModel } from "../models/Product";
-// import { FlashSaleModel } from "../models/FlashSale";
-// import { processPurchase } from "../services/flashSaleService";
+import redisClient from "../Database/redis";
+import { FlashSaleModel, FlashSaleStatus } from "../../domain/models/flashSale";
 
 const jwtAdapter = new JwtAdapter(env.secret_key);
+let io: Server;
 
-export function setupSocket(io: Server) {
+export function setupSocket(httpServer: any) {
+  io = new Server(httpServer, {
+    cors: {
+      origin: ["http://localhost:4000", "http://localhost:3000"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Authorization", "Content-Type"],
+      credentials: true,
+    },
+  });
+
   io.on("connection", async (socket: Socket) => {
     try {
       const authHeader = socket.handshake.headers.authorization as string;
@@ -29,45 +37,76 @@ export function setupSocket(io: Server) {
       const userId = decoded.id.toString();
       socket.join(userId);
 
-      console.log(`User ${userId} connected`);
+      console.log(`📡 User ${userId} connected`);
 
-      // Emit initial flash sale state
-      //   const flashSale = await FlashSaleModel.findOne({ active: true });
-      //   if (flashSale) {
-      //     const product = await ProductModel.findById(flashSale.productId);
-      //     if (product) {
-      //       socket.emit("flashSaleUpdate", {
-      //         productId: product._id,
-      //         availableUnits: product.availableUnits,
-      //         status: product.status,
-      //       });
-      //     }
-      //   }
+      // Emit cached flash sale state (if available)
+      const cachedSale = await redisClient.get("activeFlashSale");
+      if (cachedSale) {
+        socket.emit("flashSaleUpdate", JSON.parse(cachedSale));
+      } else {
+        // Fetch from DB if cache is empty
+        const flashSale = await FlashSaleModel.findOne({
+          status: FlashSaleStatus.ACTIVE,
+        });
+        if (flashSale) {
+          await redisClient.set(
+            "activeFlashSale",
+            JSON.stringify(flashSale),
+            "EX",
+            60
+          ); // Cache for 1 minute
+          socket.emit("flashSaleUpdate", flashSale);
+        }
+      }
 
-      // Handle real-time purchase requests
-      //   socket.on("purchase", async ({ productId, quantity }) => {
-      //     try {
-      //       const purchase = await processPurchase(userId, productId, quantity, io);
-      //       io.emit("flashSaleUpdate", {
-      //         productId: productId,
-      //         availableUnits: purchase.remainingStock,
-      //       });
+      // Listen for purchase events (optional)
+      socket.on("purchase", async ({ productId, quantity }) => {
+        try {
+          // Handle purchase logic (e.g., reducing stock)
+          const flashSale = await FlashSaleModel.findOne({
+            product: productId,
+            status: FlashSaleStatus.ACTIVE,
+          });
 
-      //       io.to(userId).emit("purchaseSuccess", {
-      //         message: "Purchase successful!",
-      //         purchase,
-      //       });
-      //     } catch (error) {
-      //       io.to(userId).emit("purchaseError", { message: error.message });
-      //     }
-      //   });
+          if (!flashSale || flashSale.availableUnits < quantity) {
+            socket.emit("purchaseError", {
+              message: "Not enough stock available.",
+            });
+            return;
+          }
+
+          flashSale.availableUnits -= quantity;
+          if (flashSale.availableUnits === 0) {
+            flashSale.status = FlashSaleStatus.ENDED;
+          }
+          await flashSale.save();
+
+          // Update Redis Cache
+          await redisClient.set(
+            "activeFlashSale",
+            JSON.stringify(flashSale),
+            "EX",
+            60
+          );
+
+          io.emit("flashSaleUpdate", flashSale);
+          socket.emit("purchaseSuccess", {
+            message: "Purchase successful!",
+            flashSale,
+          });
+        } catch (error) {
+          socket.emit("purchaseError", { message: error.message });
+        }
+      });
 
       socket.on("disconnect", () => {
-        console.log(`User ${userId} disconnected`);
+        console.log(`❌ User ${userId} disconnected`);
       });
     } catch (error) {
-      console.error("Socket connection error:", error);
+      console.error("❌ Socket connection error:", error);
       socket.disconnect(true);
     }
   });
 }
+
+export { io };

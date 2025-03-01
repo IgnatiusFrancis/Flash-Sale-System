@@ -6,6 +6,7 @@ import {
 } from "./sale-protocols";
 import { MissingParamError } from "../../errors";
 import { badRequest, ok, serverError } from "../../helpers/http-helpers";
+import { FlashSaleStatus } from "../../../domain/models/flashSale";
 
 export class FlashSaleController implements Controller {
   private readonly addFlashSale: AddFlashSale;
@@ -36,17 +37,37 @@ export class FlashSaleController implements Controller {
         return badRequest(new Error("availableUnits must be at least 1"));
       }
 
+      const now = new Date();
+      if (isNaN(new Date(startTime).getTime())) {
+        return badRequest(new Error("Invalid startTime format"));
+      }
+
+      if (endTime && isNaN(new Date(endTime).getTime())) {
+        return badRequest(new Error("Invalid endTime format"));
+      }
+
+      let status: FlashSaleStatus;
+
+      if (startTime > now) {
+        status = FlashSaleStatus.PENDING; // Future sale
+      } else if (endTime && endTime <= now) {
+        status = FlashSaleStatus.ENDED; // Already expired
+      } else {
+        status = FlashSaleStatus.ACTIVE; // Sale starts immediately
+      }
+
       const flashSale = await this.addFlashSale.add({
         productId,
         discount,
         availableUnits,
         startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        endTime: endTime ? new Date(endTime) : null,
+        status,
       });
 
       return ok(flashSale);
     } catch (error) {
-      return serverError(error);
+      return badRequest(error);
     }
   }
 }
