@@ -37,7 +37,7 @@ export function setupSocket(httpServer: any) {
       const userId = decoded.id.toString();
       socket.join(userId);
 
-      console.log(`📡 User ${userId} connected`);
+      console.log(`User ${userId} connected`);
 
       // Emit cached flash sale state (if available)
       const cachedSale = await redisClient.get("activeFlashSale");

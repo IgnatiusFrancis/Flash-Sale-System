@@ -1,0 +1,11 @@
+// presentation/errors/error-types.ts
+export enum ErrorType {
+  VALIDATION = "VALIDATION",
+  BUSINESS = "BUSINESS",
+  AUTHENTICATION = "AUTHENTICATION",
+  AUTHORIZATION = "AUTHORIZATION",
+  NOT_FOUND = "NOT_FOUND",
+  CONFLICT = "CONFLICT",
+  SERVER = "SERVER",
+  EXTERNAL = "EXTERNAL",
+}
