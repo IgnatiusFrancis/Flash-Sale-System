@@ -5,13 +5,8 @@ import {
   Controller,
   AddProduct,
 } from "./product-protocols";
-import {
-  MissingParamError,
-  InvalidParamError,
-  ConflictError,
-} from "../../errors";
-import { handleError, success } from "../../helpers/http-helpers";
-//import { badRequest, ok, serverError } from "../../helpers/http-helpers";
+import { MissingParamError, InvalidParamError } from "../../errors";
+import { created, handleError } from "../../helpers/http-helpers";
 
 export class ProductController implements Controller {
   private readonly addProduct: AddProduct;
@@ -22,24 +17,28 @@ export class ProductController implements Controller {
 
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
-      const requiredFields = ["name", "totalUnits", "price"];
+      const user = httpRequest.user?.id;
+      if (!user) {
+        throw new MissingParamError("userId");
+      }
+
+      const requiredFields = ["name", "price"];
 
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
           throw new MissingParamError(field);
-          //return badRequest(new MissingParamError(field));
         }
       }
 
-      const { name, totalUnits, price } = httpRequest.body;
+      const { name, description, price } = httpRequest.body;
 
-      if (totalUnits < 1) {
-        // return badRequest(new InvalidParamError("totalUnits"));
-        throw new InvalidParamError(
-          "totalUnits",
-          "Value must be greater than 0"
-        );
-      }
+      // if (totalUnits < 1) {
+      //   // return badRequest(new InvalidParamError("totalUnits"));
+      //   throw new InvalidParamError(
+      //     "totalUnits",
+      //     "Value must be greater than 0"
+      //   );
+      // }
 
       if (price <= 0) {
         throw new InvalidParamError("price", "Value must be greater than 0");
@@ -53,27 +52,14 @@ export class ProductController implements Controller {
       }
 
       const product = await this.addProduct.add({
+        user,
         name,
-        totalUnits,
+        description,
         price,
       });
 
-      // if (!product) {
-      //   return badRequest(new Error("Product already exists"));
-      // }
-
-      if (!product) {
-        throw new ConflictError({
-          message: "Product with this name already exists",
-          resource: "product",
-          metadata: { productName: name },
-        });
-      }
-
-      // return ok(product);
-      return success(product);
+      return created(product);
     } catch (error) {
-      // return serverError(error);
       return handleError(error);
     }
   }

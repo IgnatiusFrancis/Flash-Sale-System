@@ -6,13 +6,8 @@ import {
   HttpResponse,
 } from "./login-protocols";
 import { InvalidParamError, MissingParamError } from "../../errors";
-import {
-  badRequest,
-  ok,
-  serverError,
-  unauthorized,
-} from "../../helpers/http-helpers";
 import { Controller } from "../../protocols/controller";
+import { handleError, success } from "../../helpers/http-helpers";
 
 export class LogginContfroller implements Controller {
   private readonly emailValidator: EmailValidator;
@@ -23,33 +18,40 @@ export class LogginContfroller implements Controller {
     this.authentication = authentication;
   }
 
-  async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
+  public async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
       const { email, password } = httpRequest.body;
 
       const requiredFields = ["email", "password"];
-
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
-          return badRequest(new MissingParamError(field));
+          throw new MissingParamError(field);
         }
       }
 
+      // Validate email format
       const isValid = this.emailValidator.isValid(email);
-
       if (!isValid) {
-        return badRequest(new InvalidParamError("email"));
+        throw new InvalidParamError("email", "Invalid email format");
       }
 
-      const accessToken = await this.authentication.auth(email, password);
+      // Authenticate user
+      const user = await this.authentication.auth(email, password);
 
-      if (!accessToken) {
-        return unauthorized();
-      }
+      // Extract user details
+      const { id, name, role } = user;
 
-      return ok({ accessToken });
+      return success({
+        user: {
+          id,
+          name,
+          email,
+          role,
+        },
+        accessToken: user.accessToken,
+      });
     } catch (error) {
-      return serverError(error);
+      return handleError(error);
     }
   }
 }

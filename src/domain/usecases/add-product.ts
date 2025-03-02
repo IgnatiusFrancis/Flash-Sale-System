@@ -1,8 +1,10 @@
+//domain/useCases/add-product.ts
 import { ProductDocument } from "../models/product";
 
 export interface AddProductModel {
+  user: string;
   name: string;
-  totalUnits: number;
+  description?: string;
   price: number;
 }
 

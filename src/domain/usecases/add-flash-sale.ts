@@ -1,12 +1,14 @@
+//domain/useCases/add-flash-sale.ts
 import { FlashSaleDocument, FlashSaleStatus } from "../models/flashSale";
 
 export interface AddFlashSaleModel {
   productId: string;
-  availableUnits: number;
+  allocatedUnits?: number;
+  availableUnits?: number;
   discount: number;
   startTime: Date;
   endTime?: Date;
-  status?: FlashSaleStatus;
+  status: FlashSaleStatus;
 }
 
 export interface AddFlashSale {

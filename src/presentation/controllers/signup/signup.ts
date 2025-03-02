@@ -4,22 +4,18 @@ import {
   HttpResponse,
   Controller,
   EmailValidator,
-  AddAccount,
+  AddUser,
 } from "./signup-protocols";
-import {
-  MissingParamError,
-  InvalidParamError,
-  ConflictError,
-} from "../../errors";
-import { badRequest, ok, serverError } from "../../helpers/http-helpers";
+import { MissingParamError, InvalidParamError } from "../../errors";
+import { handleError, success } from "../../helpers/http-helpers";
 
 export class SignUpController implements Controller {
   private readonly emailValidator: EmailValidator;
-  private readonly addAccount: AddAccount;
+  private readonly addUser: AddUser;
 
-  constructor(emailValidator: EmailValidator, addAccount: AddAccount) {
+  constructor(emailValidator: EmailValidator, addUser: AddUser) {
     this.emailValidator = emailValidator;
-    this.addAccount = addAccount;
+    this.addUser = addUser;
   }
 
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
@@ -33,7 +29,7 @@ export class SignUpController implements Controller {
 
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
-          return badRequest(new MissingParamError(field));
+          throw new MissingParamError(field);
         }
       }
 
@@ -46,29 +42,29 @@ export class SignUpController implements Controller {
       } = httpRequest.body;
 
       if (password !== passwordConfirmation) {
-        return badRequest(new InvalidParamError("password_confirmation"));
+        throw new InvalidParamError(
+          "password_confirmation",
+          "Incorrect Password"
+        );
       }
 
       const isValidEmail = this.emailValidator.isValid(email);
 
       if (!isValidEmail) {
-        return badRequest(new InvalidParamError("email"));
+        throw new InvalidParamError("email", "Invalid email format");
       }
 
-      const account = await this.addAccount.add({
+      const account = await this.addUser.add({
         name,
         email,
         password,
         role,
       });
-
-      if (!account) {
-        return badRequest(new ConflictError());
-      }
-
-      return ok(account);
+      const accountData = account.toObject();
+      const { password: _, ...data } = accountData;
+      return success(data);
     } catch (error) {
-      return serverError(error);
+      return handleError(error);
     }
   }
 }

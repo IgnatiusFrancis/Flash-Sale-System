@@ -1,6 +1,6 @@
 import { FlashSaleModel, FlashSaleStatus } from "../../domain/models/flashSale";
 import redisClient from "../Database/redis";
-import { io } from "../webSocket";
+//import { io } from "../webSocket";
 import env from "../../main/config/env";
 
 const FLASH_SALE_LOCK_KEY = env.redis_lock_key;
@@ -24,10 +24,10 @@ const updateFlashSales = async () => {
       },
       { status: FlashSaleStatus.ACTIVE }
     );
-    // console.log("startedSales:", startedSales);
+    console.log("startedSales:", startedSales);
     if (startedSales.modifiedCount > 0) {
       console.log(`🚀 ${startedSales.modifiedCount} Flash Sale(s) started!`);
-      io.emit("flashSaleStarted", { message: "New Flash Sale is live!" });
+      //io.emit("flashSaleStarted", { message: "New Flash Sale is live!" });
     }
 
     // End expired or sold-out flash sales
@@ -38,10 +38,10 @@ const updateFlashSales = async () => {
       },
       { status: FlashSaleStatus.ENDED, endTime: now }
     );
-    // console.log("endedSales:", endedSales);
+    console.log("endedSales:", endedSales);
     if (endedSales.modifiedCount > 0) {
       console.log(`🏁 ${endedSales.modifiedCount} Flash Sale(s) ended!`);
-      io.emit("flashSaleEnded", { message: "A Flash Sale has ended!" });
+      // io.emit("flashSaleEnded", { message: "A Flash Sale has ended!" });
     }
 
     // Release the lock after execution

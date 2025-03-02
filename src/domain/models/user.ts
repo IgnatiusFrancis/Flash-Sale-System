@@ -1,12 +1,12 @@
 import { Schema, model, Document } from "mongoose";
 
-// Extend Document to include Mongoose properties
-export interface AccountDocument extends Document {
+export interface UserDocument extends Document {
   name: string;
   email: string;
   password: string;
   purchases?: Schema.Types.ObjectId[];
   role: "admin" | "customer";
+  accessToken?: string;
 }
 
 export enum UserRole {
@@ -14,11 +14,23 @@ export enum UserRole {
   CUSTOMER = "customer",
 }
 
-const AccountSchema = new Schema<AccountDocument>(
+const UserSchema = new Schema<UserDocument>(
   {
     name: { type: String, required: true, index: true },
-    email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      lowercase: true,
+      trim: true,
+      match: /.+@.+\..+/,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 2,
+    },
     purchases: [{ type: Schema.Types.ObjectId, ref: "Purchase" }],
     role: {
       type: String,
@@ -30,4 +42,4 @@ const AccountSchema = new Schema<AccountDocument>(
 );
 
 // Export the Mongoose model
-export const AccountModel = model<AccountDocument>("Account", AccountSchema);
+export const UserModel = model<UserDocument>("User", UserSchema);

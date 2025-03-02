@@ -1,11 +1,3 @@
-// export class ServerError extends Error {
-//   constructor(stack: string) {
-//     super("Internal server error");
-//     this.name = "ServerError";
-//     this.stack = stack;
-//   }
-// }
-
 // presentation/errors/server-error.ts
 import { AppError } from "./base-error";
 import { ErrorType } from "./error-types";

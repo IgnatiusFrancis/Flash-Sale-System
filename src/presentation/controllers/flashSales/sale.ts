@@ -1,82 +1,3 @@
-// import {
-//   AddFlashSale,
-//   Controller,
-//   HttpRequest,
-//   HttpResponse,
-// } from "./sale-protocols";
-// import { InvalidParamError, MissingParamError } from "../../errors";
-// import { FlashSaleStatus } from "../../../domain/models/flashSale";
-
-// export class FlashSaleController implements Controller {
-//   private readonly addFlashSale: AddFlashSale;
-
-//   constructor(addFlashSale: AddFlashSale) {
-//     this.addFlashSale = addFlashSale;
-//   }
-
-//   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
-//     try {
-//       const requiredFields = [
-//         "productId",
-//         "availableUnits",
-//         "startTime",
-//         "discount",
-//       ];
-
-//       for (const field of requiredFields) {
-//         if (!httpRequest.body[field]) {
-//           throw new MissingParamError(field);
-//           // return badRequest(new MissingParamError(field));
-//         }
-//       }
-
-//       const { productId, availableUnits, startTime, discount, endTime } =
-//         httpRequest.body;
-
-//       if (availableUnits < 1) {
-//         throw new InvalidParamError(
-//                   "availableUnits",
-//                   "Value must be at least 1"
-//                 );
-
-//       }
-
-//       const now = new Date();
-//       if (isNaN(new Date(startTime).getTime())) {
-
-//         return badRequest(new Error("Invalid startTime format"));
-//       }
-
-//       if (endTime && isNaN(new Date(endTime).getTime())) {
-//         return badRequest(new Error("Invalid endTime format"));
-//       }
-
-//       let status: FlashSaleStatus;
-
-//       if (startTime > now) {
-//         status = FlashSaleStatus.PENDING; // Future sale
-//       } else if (endTime && endTime <= now) {
-//         status = FlashSaleStatus.ENDED; // Already expired
-//       } else {
-//         status = FlashSaleStatus.ACTIVE; // Sale starts immediately
-//       }
-
-//       const flashSale = await this.addFlashSale.add({
-//         productId,
-//         discount,
-//         availableUnits,
-//         startTime: new Date(startTime),
-//         endTime: endTime ? new Date(endTime) : null,
-//         status,
-//       });
-
-//       return ok(flashSale);
-//     } catch (error) {
-//       return badRequest(error);
-//     }
-//   }
-// }
-
 import {
   AddFlashSale,
   Controller,
@@ -91,7 +12,7 @@ import {
   NotFoundError,
 } from "../../errors";
 import { FlashSaleStatus } from "../../../domain/models/flashSale";
-import { success, handleError } from "../../helpers/http-helpers";
+import { success, handleError, created } from "../../helpers/http-helpers";
 
 export class FlashSaleController implements Controller {
   private readonly addFlashSale: AddFlashSale;
@@ -102,12 +23,7 @@ export class FlashSaleController implements Controller {
 
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
-      const requiredFields = [
-        "productId",
-        "availableUnits",
-        "startTime",
-        "discount",
-      ];
+      const requiredFields = ["productId", "startTime", "discount"];
 
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
@@ -115,16 +31,7 @@ export class FlashSaleController implements Controller {
         }
       }
 
-      const { productId, availableUnits, startTime, discount, endTime } =
-        httpRequest.body;
-
-      // Validate availableUnits
-      if (availableUnits < 1) {
-        throw new InvalidParamError(
-          "availableUnits",
-          "Value must be at least 1"
-        );
-      }
+      const { productId, startTime, discount } = httpRequest.body;
 
       // Validate discount
       if (discount <= 0 || discount >= 100) {
@@ -136,6 +43,13 @@ export class FlashSaleController implements Controller {
 
       // Validate startTime
       const startDate = new Date(startTime);
+      const now = new Date();
+
+      //Convert both to UTC for accurate comparison
+      const nowUtc = new Date(now.toISOString());
+      console.log("now:", now, "nowUtc:", nowUtc, "start:", startDate);
+
+      // Ensure startTime is a valid date
       if (isNaN(startDate.getTime())) {
         throw new ValidationError({
           message: "Invalid date format for startTime",
@@ -144,60 +58,32 @@ export class FlashSaleController implements Controller {
         });
       }
 
-      // Validate endTime if provided
-      let endDate: Date | null = null;
-      if (endTime) {
-        endDate = new Date(endTime);
-        if (isNaN(endDate.getTime())) {
-          throw new ValidationError({
-            message: "Invalid date format for endTime",
-            code: "INVALID_DATE_FORMAT",
-            target: "endTime",
-          });
-        }
-
-        // Ensure endTime is after startTime
-        if (endDate <= startDate) {
-          throw new BusinessError({
-            message: "End time must be after start time",
-            code: "INVALID_TIME_RANGE",
-            target: "endTime",
-          });
-        }
+      // Ensure startTime is not in the past
+      if (startDate < now) {
+        throw new ValidationError({
+          message: "startTime cannot be in the past",
+          code: "START_TIME_IN_PAST",
+          target: "startTime",
+        });
       }
 
       // Determine sale status based on dates
-      const now = new Date();
       let status: FlashSaleStatus;
 
       if (startDate > now) {
-        status = FlashSaleStatus.PENDING; // Future sale
-      } else if (endDate && endDate <= now) {
-        status = FlashSaleStatus.ENDED; // Already expired
+        status = FlashSaleStatus.PENDING;
       } else {
-        status = FlashSaleStatus.ACTIVE; // Sale starts immediately
+        status = FlashSaleStatus.ACTIVE;
       }
-
-      // Validate that the product exists (optional, depends on your needs)
-      // This would need a productRepository to be injected
-      // if (!await this.productRepository.exists(productId)) {
-      //   throw new NotFoundError({
-      //     message: 'Product not found',
-      //     resource: 'product',
-      //     metadata: { productId }
-      //   });
-      // }
 
       const flashSale = await this.addFlashSale.add({
         productId,
         discount,
-        availableUnits,
-        startTime: startDate,
-        endTime: endDate,
         status,
+        startTime: startDate,
       });
 
-      return success(flashSale);
+      return created(flashSale);
     } catch (error) {
       return handleError(error);
     }

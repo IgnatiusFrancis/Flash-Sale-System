@@ -3,8 +3,8 @@ import {
   AddProduct,
   AddProductModel,
 } from "../../../domain/usecases/add-product";
+import { ConflictError } from "../../../presentation/errors";
 import { ProductRepository } from "./db-add-product-protocols";
-//import { AddProductRepository } from "../../protocols/add-product-repository";
 
 export class DbAddProduct implements AddProduct {
   private readonly addProductRepository: ProductRepository;
@@ -14,15 +14,20 @@ export class DbAddProduct implements AddProduct {
   }
 
   async add(productData: AddProductModel): Promise<ProductDocument | null> {
-    // 🔍 Check if a product with the same name exists
+    //  Check if a product with the same name exists
     const existingProduct = await this.addProductRepository.findByName(
       productData.name
     );
+
     if (existingProduct) {
-      return null;
+      throw new ConflictError({
+        message: "Product with this name already exists",
+        resource: "product",
+        metadata: { productName: productData.name },
+      });
     }
 
-    // ✅ Save the product (no need to manually set availableUnits)
+    //  Save the product
     return await this.addProductRepository.add(productData);
   }
 }

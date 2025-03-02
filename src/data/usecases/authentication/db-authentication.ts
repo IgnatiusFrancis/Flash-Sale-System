@@ -1,7 +1,11 @@
 import { Authentication } from "../../../domain/usecases/authentication";
-import { AccountMongoRepository } from "../../../infra/repositories/accout-repository/account";
+import { AccountMongoRepository } from "../../../infra/repositories/user-repository/user";
+import {
+  AuthenticationError,
+  NotFoundError,
+} from "../../../presentation/errors";
 import { TokenGenerator } from "../../protocols/token-generator";
-import { Encrypter } from "../add-account/db-add-account-protocols";
+import { Encrypter, UserDocument } from "../add-user/db-add-user-protocols";
 
 export class DbAuthentication implements Authentication {
   private readonly accountRepository: AccountMongoRepository;
@@ -18,23 +22,49 @@ export class DbAuthentication implements Authentication {
     this.tokenGenerator = tokenGenerator;
   }
 
-  async auth(email: string, password: string): Promise<string | null> {
+  async auth(email: string, password: string): Promise<UserDocument | null> {
     try {
-      const account = await this.accountRepository.findByEmail(email);
-      if (!account) return null;
+      // Find account by email
+      const user = await this.accountRepository.findByEmail(email);
+      if (!user) {
+        throw new NotFoundError({
+          message: "User not found",
+          resource: "user",
+          code: "USER_NOT_FOUND",
+          metadata: { user: user },
+        });
+      }
 
-      const isValid = await this.encrypter.compare(password, account.password);
+      // Validate password
+      const isValid = await this.encrypter.compare(password, user.password);
 
-      if (!isValid) return null;
+      if (!isValid) {
+        throw new AuthenticationError({
+          message: "Invalid credentials",
+          code: "INVALID_CREDENTIALS",
+          details: [
+            {
+              code: "AUTH_FAILED",
+              message: "password is incorrect",
+              target: "credentials",
+            },
+          ],
+        });
+      }
 
-      const token: string = await this.tokenGenerator.generateToken(
-        account.id,
-        account.role
+      // Generate access token
+      const accessToken: string = await this.tokenGenerator.generateToken(
+        user.id,
+        user.role
       );
 
-      return token;
+      // Return UserDocument with token
+      return {
+        ...user.toObject(),
+        accessToken,
+      } as UserDocument;
     } catch (error) {
-      throw new Error("Unexpected error");
+      throw error;
     }
   }
 }

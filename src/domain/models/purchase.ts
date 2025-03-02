@@ -1,13 +1,5 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-// Extend Document to include Mongoose properties
-export interface PurchaseDocument extends Document {
-  userId: Types.ObjectId;
-  productId: Types.ObjectId;
-  quantity: number;
-  createdAt: Date;
-}
-
 export interface PurchaseDocument extends Document {
   user: Schema.Types.ObjectId;
   productId: Types.ObjectId;

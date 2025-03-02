@@ -5,7 +5,6 @@ import { createProductController } from "../../factories/product";
 import { authMiddleware } from "../../config/middlewares";
 
 export default (router: Router): void => {
-  // Only admin can create product
   router.post(
     "/create-product",
     authMiddleware("admin"),
