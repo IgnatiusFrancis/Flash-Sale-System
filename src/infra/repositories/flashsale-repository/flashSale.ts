@@ -12,7 +12,7 @@ import {
   NotFoundError,
 } from "../../../presentation/errors";
 import logger from "../../../utils/logger";
-import { io } from "../../webSocket";
+//import { io } from "../../webSocket";
 
 export class FlashSaleMongoRepository implements flashSaleRepository {
   async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument> {
@@ -53,7 +53,7 @@ export class FlashSaleMongoRepository implements flashSaleRepository {
 
       // ✅ Emit real-time update if sale starts immediately
       if (savedSale.status === FlashSaleStatus.ACTIVE) {
-        io.emit("flashSaleStarted", savedSale);
+        //io.emit("flashSaleStarted", savedSale);
         console.log(`🚀 Flash Sale started for product ${saleData.productId}`);
       } else {
         console.log(`📅 Flash Sale scheduled for ${saleData.startTime}`);
