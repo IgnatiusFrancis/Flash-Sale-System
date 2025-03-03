@@ -1,7 +1,12 @@
 import { FlashSaleDocument } from "../../domain/models/flashSale";
 import { AddFlashSaleModel } from "../../domain/usecases/add-flash-sale";
 
-export interface flashSaleRepository {
+export interface FlashSaleRepository {
   add(flashSaleData: AddFlashSaleModel): Promise<FlashSaleDocument>;
-  findFlashSale(productId: string): Promise<FlashSaleDocument>;
+  findFlashSaleByProductId(productId: string): Promise<FlashSaleDocument>;
+  findFlashSaleById(id: string): Promise<FlashSaleDocument>;
+  decrementStock(
+    flashSaleId: string,
+    quantity: number
+  ): Promise<FlashSaleDocument | null>;
 }

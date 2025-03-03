@@ -1,3 +1,4 @@
+//controller/flashSales/sale.ts
 import {
   AddFlashSale,
   Controller,

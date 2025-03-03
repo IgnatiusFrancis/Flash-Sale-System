@@ -1,4 +1,5 @@
-import { flashSaleRepository } from "../../../data/protocols/flashSale-repository";
+//repositories/flashSale.ts
+import { FlashSaleRepository } from "../../../data/protocols/flashSale-repository";
 import {
   FlashSaleDocument,
   FlashSaleModel,
@@ -12,9 +13,10 @@ import {
   NotFoundError,
 } from "../../../presentation/errors";
 import logger from "../../../utils/logger";
+import { DistributedLock } from "../../cache";
 //import { io } from "../../webSocket";
 
-export class FlashSaleMongoRepository implements flashSaleRepository {
+export class FlashSaleMongoRepository implements FlashSaleRepository {
   async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument> {
     try {
       //  Check if product exists
@@ -81,7 +83,9 @@ export class FlashSaleMongoRepository implements flashSaleRepository {
     }
   }
 
-  async findFlashSale(productId: string): Promise<FlashSaleDocument | null> {
+  async findFlashSaleByProductId(
+    productId: string
+  ): Promise<FlashSaleDocument | null> {
     try {
       return await FlashSaleModel.findOne({
         productId,
@@ -111,6 +115,106 @@ export class FlashSaleMongoRepository implements flashSaleRepository {
         service: "MongoDB",
         cause: error instanceof Error ? error : new Error(String(error)),
       });
+    }
+  }
+
+  async findFlashSaleById(id: string): Promise<FlashSaleDocument | null> {
+    try {
+      return await FlashSaleModel.findOne({
+        id,
+      });
+    } catch (error) {
+      // Handle MongoDB validation/cast errors (invalid ObjectId)
+      if (error.name === "CastError" && error.kind === "ObjectId") {
+        throw new NotFoundError({
+          message: "flash sale not found - Invalid ID format",
+          resource: "flash sale",
+          code: "INVALID_ID",
+          metadata: { id },
+        });
+      }
+
+      // Log other database errors
+      logger.error({
+        message: "Database error while finding flashSale by Id",
+        error: error instanceof Error ? error.message : String(error),
+        operation: "FlashSaleMongoRepository.findById",
+        data: { id },
+      });
+
+      throw new ExternalServiceError({
+        message: "Failed to retrieve flash sale information",
+        service: "MongoDB",
+        cause: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
+  }
+
+  async decrementStock(
+    flashSaleId: string,
+    quantity: number
+  ): Promise<FlashSaleDocument | null> {
+    // Create a lock specifically for this flash sale's inventory
+    const lock = new DistributedLock(`flashSale:${flashSaleId}:inventory`, 5);
+
+    try {
+      // Try to acquire the lock (will wait up to 5 seconds by default)
+      const acquired = await lock.acquire();
+
+      if (!acquired) {
+        logger.warn({
+          message: "Could not acquire lock for inventory update",
+          data: { flashSaleId, quantity },
+        });
+
+        // Return null to indicate operation couldn't be performed
+        return null;
+      }
+
+      // This is the critical part for race condition prevention
+      // Use MongoDB's atomic findOneAndUpdate with conditions to prevent over-selling
+      const updatedFlashSale = await FlashSaleModel.findOneAndUpdate(
+        {
+          _id: flashSaleId,
+          status: FlashSaleStatus.ACTIVE,
+          remainingStock: { $gte: quantity }, // Ensure enough stock remains
+        },
+        {
+          $inc: { remainingStock: -quantity }, // Atomic decrement
+        },
+        {
+          new: true, // Return the updated document
+          runValidators: true, // Run schema validators
+        }
+      );
+
+      if (updatedFlashSale && updatedFlashSale.availableUnits === 0) {
+        // Update status to SOLD_OUT if stock reaches zero
+        updatedFlashSale.status = FlashSaleStatus.ENDED;
+        await updatedFlashSale.save();
+
+        // Emit event for real-time updates
+        //io.emit("flashSaleSoldOut", updatedFlashSale);
+        console.log(`🚫 Flash Sale ${flashSaleId} sold out!`);
+      }
+
+      return updatedFlashSale;
+    } catch (error) {
+      logger.error({
+        message: "Database error while decrementing stock",
+        error: error instanceof Error ? error.message : String(error),
+        operation: "FlashSaleMongoRepository.decrementStock",
+        data: { flashSaleId, quantity },
+      });
+
+      throw new ExternalServiceError({
+        message: "Failed to update flash sale stock",
+        service: "MongoDB",
+        cause: error instanceof Error ? error : new Error(String(error)),
+      });
+    } finally {
+      // Always try to release the lock
+      await lock.release();
     }
   }
 }

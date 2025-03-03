@@ -2,7 +2,7 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export interface PurchaseDocument extends Document {
   user: Schema.Types.ObjectId;
-  productId: Types.ObjectId;
+  // productId: Types.ObjectId;
   flashSale: Schema.Types.ObjectId;
   quantity: number;
   purchasedAt: Date;
@@ -18,11 +18,11 @@ const PurchaseSchema = new Schema<PurchaseDocument>(
     },
     quantity: { type: Number, required: true, min: 1 },
     purchasedAt: { type: Date, default: Date.now },
-    productId: {
-      type: Schema.Types.ObjectId,
-      ref: "Product",
-      required: true,
-    },
+    // productId: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "Product",
+    //   required: true,
+    // },
   },
   { timestamps: true }
 );

@@ -21,6 +21,8 @@ export interface FlashSaleDocument extends Document {
 
   // Virtual field to calculate discounted price
   discountedPrice?: number;
+  maxPurchasePerUser: number; // Maximum quantity a user can purchase in total
+  maxPurchasePerTransaction: number;
 }
 
 const FlashSaleSchema = new Schema<FlashSaleDocument>(
@@ -49,6 +51,16 @@ const FlashSaleSchema = new Schema<FlashSaleDocument>(
     discount: { type: Number, required: true, min: 0, max: 100 },
     startTime: { type: Date, required: true, index: true },
     endTime: { type: Date, default: null, index: true },
+    maxPurchasePerUser: {
+      type: Number,
+      default: 5, // Default limit (adjust as needed)
+      min: 1,
+    },
+    maxPurchasePerTransaction: {
+      type: Number,
+      default: 2, // Default limit (adjust as needed)
+      min: 1,
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

@@ -8,3 +8,4 @@ export * from "./not-found-error";
 export * from "./conflict-error";
 export * from "./server-error";
 export * from "./external-error";
+export * from "./forbidden-error";

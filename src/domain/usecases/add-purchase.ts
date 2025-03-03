@@ -1,15 +1,13 @@
-//domain/useCases/add-purchase.ts
-
+// domain/usecases/add-purchase.ts
 import { PurchaseDocument } from "../models/purchase";
 
 export interface AddPurchaseModel {
-  user: string;
-  productId: string;
-  flashSale: string;
+  flashSaleId: string;
+  userId: string;
   quantity: number;
-  //purchasedAt: Date;
+  purchaseTime: Date;
 }
 
 export interface AddPurchase {
-  add(purchaseData: AddPurchaseModel): Promise<PurchaseDocument>;
+  purchaseProduct(purchase: AddPurchaseModel): Promise<PurchaseDocument>;
 }

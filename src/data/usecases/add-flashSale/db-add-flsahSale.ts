@@ -1,19 +1,20 @@
+//usecases/add-flashSale/db-add-flashSale.ts
 import { ConflictError, NotFoundError } from "../../../presentation/errors";
 import {
   AddFlashSale,
   AddFlashSaleModel,
   FlashSaleDocument,
-  flashSaleRepository,
+  FlashSaleRepository,
   ProductRepository,
 } from "./db-add-flashSale-protocols";
 
 export class DbAddFlashSale implements AddFlashSale {
   private readonly productRepository: ProductRepository;
-  private readonly flashSaleRepository: flashSaleRepository;
+  private readonly flashSaleRepository: FlashSaleRepository;
 
   constructor(
     productRepository: ProductRepository,
-    flashSaleRepository: flashSaleRepository
+    flashSaleRepository: FlashSaleRepository
   ) {
     this.productRepository = productRepository;
     this.flashSaleRepository = flashSaleRepository;
@@ -33,9 +34,10 @@ export class DbAddFlashSale implements AddFlashSale {
       });
     }
 
-    const existingFlashSale = await this.flashSaleRepository.findFlashSale(
-      saleData.productId
-    );
+    const existingFlashSale =
+      await this.flashSaleRepository.findFlashSaleByProductId(
+        saleData.productId
+      );
 
     if (existingFlashSale) {
       throw new ConflictError({

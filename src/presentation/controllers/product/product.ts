@@ -32,14 +32,6 @@ export class ProductController implements Controller {
 
       const { name, description, price } = httpRequest.body;
 
-      // if (totalUnits < 1) {
-      //   // return badRequest(new InvalidParamError("totalUnits"));
-      //   throw new InvalidParamError(
-      //     "totalUnits",
-      //     "Value must be greater than 0"
-      //   );
-      // }
-
       if (price <= 0) {
         throw new InvalidParamError("price", "Value must be greater than 0");
       }

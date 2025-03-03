@@ -8,4 +8,5 @@ export enum ErrorType {
   CONFLICT = "CONFLICT",
   SERVER = "SERVER",
   EXTERNAL = "EXTERNAL",
+  FORBIDDEN = "FORBIDDEN",
 }
