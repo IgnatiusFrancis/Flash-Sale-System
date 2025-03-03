@@ -1,19 +1,15 @@
 //main/config/app.ts
 import express from "express";
-import http from "http";
 import cron from "node-cron";
 import { setupMiddlewares } from "./middlewares";
 import { setupRoutes } from "./routes";
-import { setupSocket } from "../../infra/webSocket";
 import updateFlashSales from "../../infra/cronJob";
 import { errorHandler } from "../middlewares/error-handler";
 
 const app = express();
-const server = http.createServer(app);
 
 setupMiddlewares(app);
 setupRoutes(app);
-setupSocket(server);
 
 app.use(errorHandler);
 
@@ -35,6 +31,6 @@ async function startCronJobs() {
   });
 }
 
-//startCronJobs();
+startCronJobs();
 
 export default app;
