@@ -1,5 +1,3 @@
-//data/protocols/add-user-repository.ts
-
 import {
   AddUserModel,
   UserDocument,

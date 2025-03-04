@@ -163,33 +163,6 @@ export class PurchaseMongoRepository implements PurchaseRepository {
     }
   }
 
-  // public async getLeaderBoard(
-  //   flashSaleId: string,
-  //   skip: number,
-  //   limit: number
-  // ) {
-  //   try {
-
-  //     const res = await PurchaseModel.find({
-  //       flashSaleId,
-  //     })
-  //       // Sort in chronological order
-  //       .sort({ purchasedAt: 1 })
-  //       .skip(skip)
-  //       .limit(limit)
-  //       .select("user purchasedAt")
-  //       .populate({
-  //         path: "user",
-  //         select: "name email",
-  //       })
-  //       // Optimize query performance
-  //       .lean();
-
-  //     console.log("ended", res);
-  //     return res;
-  //   } catch (error) {}
-  // }
-
   public async getLeaderBoard(
     flashSaleId: string,
     skip: number,

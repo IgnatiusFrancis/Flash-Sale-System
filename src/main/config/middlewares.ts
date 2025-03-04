@@ -1,20 +1,3 @@
-// //config/middleware.ts
-// import { Express } from "express";
-// import { bodyParser, contentType, cors, errorHandler } from "../middlewares";
-
-// export const setupMiddlewares = (app: Express): void => {
-//   app.use(bodyParser);
-//   app.use(cors);
-//   app.use(contentType);
-//   app.use(errorHandler);
-//   app.use((req, res, next) => {
-//     req.ipAddress = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
-//     req.userAgent = req.headers["user-agent"];
-//     next();
-//   });
-
-// };
-
 // config/middleware.ts
 import { Express, Request, Response, NextFunction } from "express";
 import { bodyParser, contentType, cors, errorHandler } from "../middlewares";

@@ -1,6 +1,3 @@
-// 12. Create a distributed lock mechanism for high-concurrency scenarios
-// utils/distributed-lock.ts
-
 import { v4 as uuidv4 } from "uuid";
 import logger from "../../utils/logger";
 import redisClient from "../Database/redis";
@@ -18,7 +15,6 @@ export class DistributedLock {
 
   async acquire(): Promise<boolean> {
     try {
-      // Try to set the lock with NX (only if it doesn't exist)
       const result = await redisClient.set(
         this.lockKey,
         this.lockValue,
@@ -39,7 +35,6 @@ export class DistributedLock {
 
   async release(): Promise<boolean> {
     try {
-      // Use Lua script to ensure we only delete the lock if it's still ours
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("del", KEYS[1])
