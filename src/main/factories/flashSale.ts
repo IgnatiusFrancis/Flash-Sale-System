@@ -1,5 +1,5 @@
 //factories/flashSale.ts
-import { DbAddFlashSale } from "../../data/usecases/add-flashSale/db-add-flsahSale";
+import { DbAddFlashSale } from "../../data/services/add-flashSale/db-add-flsahSale";
 import { FlashSaleMongoRepository } from "../../infra/repositories/flashsale-repository/flashSale";
 import { LogMongoRepository } from "../../infra/repositories/log-repository/log";
 import { ProductMongoRepository } from "../../infra/repositories/product-repository/product";

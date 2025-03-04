@@ -13,6 +13,7 @@ import {
 } from "../../../domain/models/flashSale";
 import { broadcastFlashSaleEnded, broadcastStockUpdate } from "../../webSocket";
 import { DistributedLock } from "../../cache";
+import { ObjectId } from "mongodb";
 
 export class PurchaseMongoRepository implements PurchaseRepository {
   async purchaseProduct(
@@ -159,6 +160,105 @@ export class PurchaseMongoRepository implements PurchaseRepository {
         service: "MongoDB",
         cause: error instanceof Error ? error : new Error(String(error)),
       });
+    }
+  }
+
+  // public async getLeaderBoard(
+  //   flashSaleId: string,
+  //   skip: number,
+  //   limit: number
+  // ) {
+  //   try {
+
+  //     const res = await PurchaseModel.find({
+  //       flashSaleId,
+  //     })
+  //       // Sort in chronological order
+  //       .sort({ purchasedAt: 1 })
+  //       .skip(skip)
+  //       .limit(limit)
+  //       .select("user purchasedAt")
+  //       .populate({
+  //         path: "user",
+  //         select: "name email",
+  //       })
+  //       // Optimize query performance
+  //       .lean();
+
+  //     console.log("ended", res);
+  //     return res;
+  //   } catch (error) {}
+  // }
+
+  public async getLeaderBoard(
+    flashSaleId: string,
+    skip: number,
+    limit: number
+  ) {
+    interface UserType {
+      _id: ObjectId;
+      name: string;
+      email: string;
+    }
+    try {
+      // Fetch transactions, sorted by purchase time
+      const purchases = await PurchaseModel.find({
+        flashSaleId,
+      })
+        .sort({ purchasedAt: 1 })
+        .select("user purchasedAt")
+        .populate({
+          path: "user",
+          select: "name email",
+        })
+        .lean();
+
+      // Track first purchase time and total purchase count per user
+      const userStats = new Map<
+        string,
+        { firstPurchase: Date; totalPurchases: number; user: UserType }
+      >();
+
+      purchases.forEach((purchase) => {
+        if (!purchase.user) {
+          console.warn("Skipping purchase with missing user:", purchase);
+          return;
+        }
+
+        // Force TypeScript to recognize `user` as a proper object
+        const user = purchase.user as unknown as UserType;
+        const userId = user._id.toString();
+
+        if (!userStats.has(userId)) {
+          userStats.set(userId, {
+            firstPurchase: purchase.purchasedAt,
+            totalPurchases: 1,
+            user,
+          });
+        } else {
+          userStats.get(userId)!.totalPurchases += 1;
+        }
+      });
+
+      // Convert map to array and apply pagination
+      // Sort by first purchase
+      const leaderboard = Array.from(userStats.entries())
+        .sort(
+          (a, b) => a[1].firstPurchase.getTime() - b[1].firstPurchase.getTime()
+        )
+        .slice(skip, skip + limit)
+        .map(([userId, data], index) => ({
+          rank: skip + index + 1,
+          name: data.user.name,
+          email: data.user.email,
+          totalPurchases: data.totalPurchases,
+          userId: data.user._id,
+        }));
+
+      return leaderboard;
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      throw new Error("Failed to fetch leaderboard");
     }
   }
 }

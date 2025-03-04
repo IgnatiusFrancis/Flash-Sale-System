@@ -72,7 +72,7 @@ export function setupSocket(httpServer: any) {
       });
 
       // Handle leaving a specific flash sale room
-      socket.on("leaveFlashSale", (flashSaleId) => {
+      socket.on("leaveFlashSale", ({ flashSaleId }) => {
         socket.leave(`flashsale:${flashSaleId}`);
         console.log(`User ${userId} left flash sale room: ${flashSaleId}`);
       });

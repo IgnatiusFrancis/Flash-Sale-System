@@ -1,6 +1,6 @@
 //factories/login.ts
 import env from "../config/env";
-import { DbAuthentication } from "../../data/usecases/authentication/db-authentication";
+import { DbAuthentication } from "../../data/services/authentication/db-authentication";
 import { BcryptAdapter } from "../../infra/criptography/bcrypt-adapter";
 import { JwtAdapter } from "../../infra/criptography/jwt-adapter";
 import { AccountMongoRepository } from "../../infra/repositories/user-repository/user";

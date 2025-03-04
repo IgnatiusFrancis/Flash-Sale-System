@@ -5,8 +5,4 @@ export interface FlashSaleRepository {
   add(flashSaleData: AddFlashSaleModel): Promise<FlashSaleDocument>;
   findFlashSaleByProductId(productId: string): Promise<FlashSaleDocument>;
   findFlashSaleById(id: string): Promise<FlashSaleDocument>;
-  decrementStock(
-    flashSaleId: string,
-    quantity: number
-  ): Promise<FlashSaleDocument | null>;
 }

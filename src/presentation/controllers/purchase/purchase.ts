@@ -1,6 +1,10 @@
 import { TransactionStatus } from "../../../domain/models/transaction";
 import logger from "../../../utils/logger";
-import { InvalidParamError, MissingParamError } from "../../errors";
+import {
+  ForbiddenError,
+  InvalidParamError,
+  MissingParamError,
+} from "../../errors";
 import { created, handleError } from "../../helpers/http-helpers";
 import {
   AddPurchase,
@@ -18,10 +22,9 @@ export class PurchaseController implements Controller {
     this.purchaseProduct = purchaseProduct;
     this.fraudDetection = fraudDetection;
   }
-  //transactionData: Partial<TransactionDocument>
+
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
-      //   console.log(httpRequest);
       const userId = httpRequest.user?.id;
       if (!userId) {
         throw new MissingParamError("userId");
@@ -49,29 +52,36 @@ export class PurchaseController implements Controller {
       });
 
       // Process transaction for fraud detection
-      //   const transaction = await this.fraudDetection.processTransaction({
-      //     flashSaleId,
-      //     userId,
-      //     purchaseId: purchase.id,
-      //     ipAddress: httpRequest.ipAddress || "unknown",
-      //     userAgent: httpRequest.userAgent["user-agent"] || "unknown",
-      //     amount: quantity,
-      //     timestamp: new Date(),
-      //   });
+      const transaction = await this.fraudDetection.processTransaction({
+        flashSaleId,
+        userId,
+        purchaseId: purchase.id,
+        ipAddress: httpRequest.ipAddress || "unknown",
+        userAgent: httpRequest.userAgent || "unknown",
+        amount: quantity,
+        timestamp: new Date(),
+      });
 
-      //   // Check if transaction was flagged as fraudulent
-      //   if (transaction.status === TransactionStatus.FLAGGED) {
-      //     // Log the flagged transaction but still return success to the user
-      //     // In a real system, you might want to implement a review process
-      //     logger.warn({
-      //       message: "Potentially fraudulent purchase detected",
-      //       data: {
-      //         purchaseId: purchase._id,
-      //         userId,
-      //         fraudScore: transaction.fraudScore,
-      //       },
-      //     });
-      //   }
+      // Check if transaction was flagged as fraudulent
+      if (transaction.status === TransactionStatus.FLAGGED) {
+        logger.warn({
+          message: "Potentially fraudulent purchase detected",
+          data: {
+            purchaseId: purchase._id,
+            userId,
+            fraudScore: transaction.fraudScore,
+          },
+        });
+
+        throw new ForbiddenError({
+          message: `Your account is temporarily restricted due to suspicious activity.`,
+          code: "SUSPICIOUS_ACTIVITY",
+          metadata: {
+            status: transaction.status,
+            flashSaleId: flashSaleId,
+          },
+        });
+      }
 
       return created(purchase);
     } catch (error) {

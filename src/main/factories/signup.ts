@@ -6,7 +6,7 @@ import { SignUpController } from "../../presentation/controllers/signup/signup";
 import { Controller } from "../../presentation/protocols";
 import { EmailValidatorAdapter } from "../../utils/email-validator-adapter";
 import { LogControllerDecorator } from "../decorators/log";
-import { DbAddUser } from "../../data/usecases/add-user/db-user-account";
+import { DbAddUser } from "../../data/services/add-user/db-user-account";
 
 export const signUpController = (): Controller => {
   const emailValidatorAdapter = new EmailValidatorAdapter();

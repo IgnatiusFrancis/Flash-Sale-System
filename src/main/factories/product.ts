@@ -1,4 +1,4 @@
-import { DbAddProduct } from "../../data/usecases/add-product/db-add-product";
+import { DbAddProduct } from "../../data/services/add-product/db-add-product";
 import { LogMongoRepository } from "../../infra/repositories/log-repository/log";
 import { ProductMongoRepository } from "../../infra/repositories/product-repository/product";
 import { ProductController } from "../../presentation/controllers/product/product";

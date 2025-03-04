@@ -3,7 +3,7 @@
 import {
   AddUserModel,
   UserDocument,
-} from "../usecases/add-user/db-add-user-protocols";
+} from "../services/add-user/db-add-user-protocols";
 
 export interface AddUserRepository {
   add(accountData: AddUserModel): Promise<UserDocument>;

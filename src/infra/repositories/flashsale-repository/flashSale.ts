@@ -13,8 +13,6 @@ import {
   NotFoundError,
 } from "../../../presentation/errors";
 import logger from "../../../utils/logger";
-import { DistributedLock } from "../../cache";
-//import { io } from "../../webSocket";
 
 export class FlashSaleMongoRepository implements FlashSaleRepository {
   async add(saleData: AddFlashSaleModel): Promise<FlashSaleDocument> {
@@ -145,76 +143,6 @@ export class FlashSaleMongoRepository implements FlashSaleRepository {
         service: "MongoDB",
         cause: error instanceof Error ? error : new Error(String(error)),
       });
-    }
-  }
-
-  async decrementStock(
-    flashSaleId: string,
-    quantity: number
-  ): Promise<FlashSaleDocument | null> {
-    // Create a lock specifically for this flash sale's inventory
-    const lock = new DistributedLock(`flashSale:${flashSaleId}:inventory`, 5);
-
-    try {
-      // Try to acquire the lock (will wait up to 5 seconds by default)
-      const acquired = await lock.acquire();
-      console.log("acquired:", acquired, flashSaleId, quantity);
-
-      if (!acquired) {
-        logger.warn({
-          message: "Could not acquire lock for inventory update",
-          data: { flashSaleId, quantity },
-        });
-
-        // Return null to indicate operation couldn't be performed
-        return null;
-      }
-
-      // This is the critical part for race condition prevention
-      // Use MongoDB's atomic findOneAndUpdate with conditions to prevent over-selling
-
-      const updatedFlashSale = await FlashSaleModel.findOneAndUpdate(
-        {
-          _id: flashSaleId,
-          status: FlashSaleStatus.ACTIVE,
-          availableUnits: { $gte: quantity }, // Ensure enough stock remains
-        },
-        {
-          $inc: { availableUnits: -quantity }, // Atomic decrement
-        },
-        {
-          new: true, // Return the updated document
-          runValidators: true, // Run schema validators
-        }
-      );
-      console.log("updatedFlashSale:", updatedFlashSale);
-      if (updatedFlashSale && updatedFlashSale.availableUnits === 0) {
-        // Update status to SOLD_OUT if stock reaches zero
-        updatedFlashSale.status = FlashSaleStatus.ENDED;
-        await updatedFlashSale.save();
-
-        // Emit event for real-time updates
-        //io.emit("flashSaleSoldOut", updatedFlashSale);
-        console.log(`🚫 Flash Sale ${flashSaleId} sold out!`);
-      }
-
-      return updatedFlashSale;
-    } catch (error) {
-      logger.error({
-        message: "Database error while decrementing stock",
-        error: error instanceof Error ? error.message : String(error),
-        operation: "FlashSaleMongoRepository.decrementStock",
-        data: { flashSaleId, quantity },
-      });
-
-      throw new ExternalServiceError({
-        message: "Failed to update flash sale stock",
-        service: "MongoDB",
-        cause: error instanceof Error ? error : new Error(String(error)),
-      });
-    } finally {
-      // Always try to release the lock
-      await lock.release();
     }
   }
 }

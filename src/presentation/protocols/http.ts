@@ -1,8 +1,9 @@
-//presentation/protocols/http.ts
-export interface HttpResponse {
-  statusCode: number;
-  body: any;
-}
+// import { Request, Response } from "express";
+
+// export interface HttpResponse extends Response {
+//   statusCode: number;
+//   body: any;
+// }
 
 // export interface HttpRequest {
 //   body?: any;
@@ -10,19 +11,25 @@ export interface HttpResponse {
 //     id: string;
 //     role: string;
 //   };
+//   ipAddress?: string;
+//   userAgent?: string;
 // }
 
-export interface HttpResponse {
+import { Request, Response } from "express";
+
+export interface HttpResponse extends Response {
   statusCode: number;
   body: any;
 }
 
 export interface HttpRequest {
   body?: any;
+  query?: Record<string, string | undefined>;
+  params?: Record<string, string | undefined>;
   user?: {
     id: string;
     role: string;
   };
-  ipAddress?: string; // Add IP address field
-  userAgent?: string; // Add user agent field
+  ipAddress?: string;
+  userAgent?: string;
 }

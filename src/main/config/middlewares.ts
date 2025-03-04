@@ -25,16 +25,16 @@ export const setupMiddlewares = (app: Express): void => {
   app.use(contentType);
   app.use(errorHandler);
 
-  // Middleware to extract IP address and user agent
   app.use((req: Request, res: Response, next: NextFunction) => {
     const forwardedFor = req.headers["x-forwarded-for"];
-    req.ipAddress =
+    const ipAddress =
       typeof forwardedFor === "string"
         ? forwardedFor.split(",")[0].trim()
-        : Array.isArray(forwardedFor) && forwardedFor.length > 0
-        ? forwardedFor[0].split(",")[0].trim()
         : req.socket.remoteAddress || "unknown";
-    req.userAgent = req.headers["user-agent"] || "unknown";
+
+    (req as any).ipAddress = ipAddress;
+    (req as any).userAgent = req.headers["user-agent"] || "unknown";
+
     next();
   });
 };
