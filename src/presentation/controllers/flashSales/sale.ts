@@ -1,4 +1,5 @@
 //controller/flashSales/sale.ts
+import { DateTime } from "luxon";
 import {
   AddFlashSale,
   Controller,
@@ -13,7 +14,7 @@ import {
   NotFoundError,
 } from "../../errors";
 import { FlashSaleStatus } from "../../../domain/models/flashSale";
-import { success, handleError, created } from "../../helpers/http-helpers";
+import { handleError, created } from "../../helpers/http-helpers";
 
 export class FlashSaleController implements Controller {
   private readonly addFlashSale: AddFlashSale;
@@ -42,13 +43,13 @@ export class FlashSaleController implements Controller {
         );
       }
 
-      // Validate startTime
-      const startDate = new Date(startTime);
-      const now = new Date();
+      // Convert startTime to UTC
+      const startDate = DateTime.fromISO(startTime, { zone: "America/Chicago" })
+        .toUTC()
+        .toJSDate();
+      const nowUtc = new Date();
 
-      //Convert both to UTC for accurate comparison
-      const nowUtc = new Date(now.toISOString());
-      console.log("now:", now, "nowUtc:", nowUtc, "start:", startDate);
+      console.log("nowUtc:", nowUtc, "startUtc:", startDate);
 
       // Ensure startTime is a valid date
       if (isNaN(startDate.getTime())) {
@@ -60,7 +61,7 @@ export class FlashSaleController implements Controller {
       }
 
       // Ensure startTime is not in the past
-      if (startDate < now) {
+      if (startDate < nowUtc) {
         throw new ValidationError({
           message: "startTime cannot be in the past",
           code: "START_TIME_IN_PAST",
@@ -69,19 +70,13 @@ export class FlashSaleController implements Controller {
       }
 
       // Determine sale status based on dates
-      let status: FlashSaleStatus;
-
-      if (startDate > now) {
-        status = FlashSaleStatus.PENDING;
-      } else {
-        status = FlashSaleStatus.ACTIVE;
-      }
+      let status: FlashSaleStatus = FlashSaleStatus.PENDING;
 
       const flashSale = await this.addFlashSale.add({
         productId,
         discount,
         status,
-        startTime: startDate,
+        startTime: startDate, // Store in UTC
       });
 
       return created(flashSale);

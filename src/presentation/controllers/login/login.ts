@@ -20,6 +20,7 @@ export class LogginContfroller implements Controller {
 
   public async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
+      // console.log("HttpRequest...", httpRequest);
       const { email, password } = httpRequest.body;
 
       const requiredFields = ["email", "password"];

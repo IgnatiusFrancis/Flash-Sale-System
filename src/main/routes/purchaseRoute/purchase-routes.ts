@@ -5,7 +5,7 @@ import { authMiddleware, purchaseLimiter } from "../../middlewares";
 
 export default (router: Router): void => {
   router.post(
-    "/purchase",
+    "/purchase-product",
     authMiddleware("customer"),
     purchaseLimiter,
     adaptRoute(createPurchaseController())

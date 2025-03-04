@@ -26,7 +26,7 @@ export class PurchaseController implements Controller {
         throw new MissingParamError("userId");
       }
 
-      const requiredFields = ["userId", "flashSaleId", "quantity"];
+      const requiredFields = ["flashSaleId", "quantity"];
 
       for (const field of requiredFields) {
         if (!httpRequest.body[field]) {
