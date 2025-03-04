@@ -120,9 +120,7 @@ export class FlashSaleMongoRepository implements FlashSaleRepository {
 
   async findFlashSaleById(id: string): Promise<FlashSaleDocument | null> {
     try {
-      return await FlashSaleModel.findOne({
-        id,
-      });
+      return await FlashSaleModel.findById(id);
     } catch (error) {
       // Handle MongoDB validation/cast errors (invalid ObjectId)
       if (error.name === "CastError" && error.kind === "ObjectId") {
@@ -160,6 +158,7 @@ export class FlashSaleMongoRepository implements FlashSaleRepository {
     try {
       // Try to acquire the lock (will wait up to 5 seconds by default)
       const acquired = await lock.acquire();
+      console.log("acquired:", acquired, flashSaleId, quantity);
 
       if (!acquired) {
         logger.warn({
@@ -173,21 +172,22 @@ export class FlashSaleMongoRepository implements FlashSaleRepository {
 
       // This is the critical part for race condition prevention
       // Use MongoDB's atomic findOneAndUpdate with conditions to prevent over-selling
+
       const updatedFlashSale = await FlashSaleModel.findOneAndUpdate(
         {
           _id: flashSaleId,
           status: FlashSaleStatus.ACTIVE,
-          remainingStock: { $gte: quantity }, // Ensure enough stock remains
+          availableUnits: { $gte: quantity }, // Ensure enough stock remains
         },
         {
-          $inc: { remainingStock: -quantity }, // Atomic decrement
+          $inc: { availableUnits: -quantity }, // Atomic decrement
         },
         {
           new: true, // Return the updated document
           runValidators: true, // Run schema validators
         }
       );
-
+      console.log("updatedFlashSale:", updatedFlashSale);
       if (updatedFlashSale && updatedFlashSale.availableUnits === 0) {
         // Update status to SOLD_OUT if stock reaches zero
         updatedFlashSale.status = FlashSaleStatus.ENDED;

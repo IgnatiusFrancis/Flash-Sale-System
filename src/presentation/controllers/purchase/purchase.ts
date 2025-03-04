@@ -21,6 +21,7 @@ export class PurchaseController implements Controller {
   //transactionData: Partial<TransactionDocument>
   async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
     try {
+      //   console.log(httpRequest);
       const userId = httpRequest.user?.id;
       if (!userId) {
         throw new MissingParamError("userId");
@@ -48,29 +49,29 @@ export class PurchaseController implements Controller {
       });
 
       // Process transaction for fraud detection
-      const transaction = await this.fraudDetection.processTransaction({
-        flashSaleId,
-        userId,
-        purchaseId: purchase.id,
-        ipAddress: httpRequest.ipAddress || "unknown",
-        userAgent: httpRequest.userAgent["user-agent"] || "unknown",
-        amount: quantity,
-        timestamp: new Date(),
-      });
+      //   const transaction = await this.fraudDetection.processTransaction({
+      //     flashSaleId,
+      //     userId,
+      //     purchaseId: purchase.id,
+      //     ipAddress: httpRequest.ipAddress || "unknown",
+      //     userAgent: httpRequest.userAgent["user-agent"] || "unknown",
+      //     amount: quantity,
+      //     timestamp: new Date(),
+      //   });
 
-      // Check if transaction was flagged as fraudulent
-      if (transaction.status === TransactionStatus.FLAGGED) {
-        // Log the flagged transaction but still return success to the user
-        // In a real system, you might want to implement a review process
-        logger.warn({
-          message: "Potentially fraudulent purchase detected",
-          data: {
-            purchaseId: purchase._id,
-            userId,
-            fraudScore: transaction.fraudScore,
-          },
-        });
-      }
+      //   // Check if transaction was flagged as fraudulent
+      //   if (transaction.status === TransactionStatus.FLAGGED) {
+      //     // Log the flagged transaction but still return success to the user
+      //     // In a real system, you might want to implement a review process
+      //     logger.warn({
+      //       message: "Potentially fraudulent purchase detected",
+      //       data: {
+      //         purchaseId: purchase._id,
+      //         userId,
+      //         fraudScore: transaction.fraudScore,
+      //       },
+      //     });
+      //   }
 
       return created(purchase);
     } catch (error) {

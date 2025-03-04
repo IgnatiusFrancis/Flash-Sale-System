@@ -53,12 +53,12 @@ const FlashSaleSchema = new Schema<FlashSaleDocument>(
     endTime: { type: Date, default: null, index: true },
     maxPurchasePerUser: {
       type: Number,
-      default: 5, // Default limit (adjust as needed)
+      default: 50,
       min: 1,
     },
     maxPurchasePerTransaction: {
       type: Number,
-      default: 2, // Default limit (adjust as needed)
+      default: 20,
       min: 1,
     },
   },

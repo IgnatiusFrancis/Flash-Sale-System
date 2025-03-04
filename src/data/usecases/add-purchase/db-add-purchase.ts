@@ -110,24 +110,19 @@ export class DbPurchaseProduct implements AddPurchase {
       });
     }
 
-    // Try to update stock (this must be atomic to prevent race conditions)
-    const updatedFlashSale = await this.flashSaleRepository.decrementStock(
-      purchaseData.flashSaleId,
-      purchaseData.quantity
-    );
-
-    if (!updatedFlashSale) {
+    // ** Check if sufficient stock is available before decrementing**
+    if (flashSale.availableUnits < purchaseData.quantity) {
       throw new BusinessError({
         message: "Not enough stock available for purchase",
         code: "INSUFFICIENT_STOCK",
         metadata: {
           flashSaleId: purchaseData.flashSaleId,
           requestedQuantity: purchaseData.quantity,
+          availableStock: flashSale.availableUnits,
         },
       });
     }
 
-    // If we get here, stock was successfully updated
     // Create the purchase record
     return await this.purchaseRepository.purchaseProduct(purchaseData);
   }

@@ -6,5 +6,7 @@ declare module "express" {
       id: string;
       role: string;
     };
+    ipAddress?: string;
+    userAgent?: string;
   }
 }
