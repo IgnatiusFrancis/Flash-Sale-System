@@ -51,7 +51,7 @@ export class PurchaseController implements Controller {
         purchaseTime: new Date(),
       });
 
-      // Process transaction for fraud detection
+      // Process transaction for fraud detection.
       const transaction = await this.fraudDetection.processTransaction({
         flashSaleId,
         userId,
