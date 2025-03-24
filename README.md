@@ -510,7 +510,7 @@ Authorization: Bearer <admin_token>
     . Websocket horizontal scaling to handle distributed systems
     . Retry mechanism
 
-## Development Challenges
+<!-- ## Development Challenges
 
 1.  Time Management:
     . Fraud Detection system testing
@@ -518,7 +518,7 @@ Authorization: Bearer <admin_token>
 
 2.  Technical Challenges:
     . Implementing real-time WebSocket communication
-    . Ensuring proper state management across the system
+    . Ensuring proper state management across the system -->
 
 ## Contributing
 
